@@ -1,0 +1,12 @@
+---
+- name: Gatewayd application server
+  hosts: gatewayd
+  remote_user: ubuntu
+  sudo: yes
+  roles:
+    - common
+#    - nginx
+#    - nodejs
+#    - postgres
+#    - gatewayd
+
