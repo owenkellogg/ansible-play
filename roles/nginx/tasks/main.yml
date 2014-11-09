@@ -1,0 +1,6 @@
+---
+- name: install nginx
+  apt: name=nginx state=present
+- name: update config line
+  replace: dest=/etc/nginx/sites-available/default regexp='(index)\.html' replace='\1\.php'
+  
