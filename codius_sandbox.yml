@@ -1,0 +1,10 @@
+---
+- name: Codius Sanbox Development Server
+  hosts: codius_sandbox
+  remote_user: ubuntu
+  sudo: yes
+  roles:
+    - common
+    - codius-sandbox
+    - nodejs
+

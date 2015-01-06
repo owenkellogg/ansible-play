@@ -1,0 +1,6 @@
+---
+- name: apt install
+  apt: name=nodejs state=present
+  apt: name=npm state=present
+- name: symlink node
+  shell: ln -s /usr/bin/nodejs /usr/bin/node
