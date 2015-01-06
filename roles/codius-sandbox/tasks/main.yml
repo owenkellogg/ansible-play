@@ -10,8 +10,15 @@
   apt: name=libseccomp-dev state=present
   apt: name=libuv-dev state=present
   apt: name=libcppunit-dev state=present
+  apt: name=pkg-config state=present
 - name: update gcc
   shell: sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.8 40 --slave /usr/bin/g++ g++ /usr/bin/g++-4.8
   shell: sudo update-alternatives --set gcc /usr/bin/gcc-4.8
   shell: g++ -v
+- name: download
+  git: repo=https://github.com/codius/codius-sandbox.git
+       dest=/home/ubuntu/codius-sandbox
+       version=master
+- name: build
+  shell: sudo node-gyp rebuild chdir=/home/ubuntu/codius-sandbox
 

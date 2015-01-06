@@ -5,6 +5,6 @@
   sudo: yes
   roles:
     - common
-    - codius-sandbox
     - nodejs
+    - codius-sandbox
 
