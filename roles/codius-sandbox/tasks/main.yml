@@ -7,10 +7,10 @@
 - name: apt install
   apt: name=g++-4.8 state=present
   apt: name=gcc-4.8 state=present
+  apt: name=pkg-config state=present
   apt: name=libseccomp-dev state=present
   apt: name=libuv-dev state=present
   apt: name=libcppunit-dev state=present
-  apt: name=pkg-config state=present
 - name: update gcc
   shell: sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.8 40 --slave /usr/bin/g++ g++ /usr/bin/g++-4.8
   shell: sudo update-alternatives --set gcc /usr/bin/gcc-4.8
