@@ -1,0 +1,18 @@
+---
+- name: apt install
+  apt: name=libc6-i386 state=present
+  apt: name=lib32stdc++6 state=present
+- name: install libseccomp
+  shell: dpkg --add-architecture i386
+  apt: upgrade=yes
+  apt: name=libseccomp2:i386 state=present
+- name: download
+  git: repo=https://github.com/codius/codius-host.git
+       dest=/home/ubuntu/codius_host
+       version=master
+- name: npm install
+  npm: path=/home/ubuntu/codius_host
+- name: rsa keygen
+  shell: openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout server.key -out server.crt chdir=/home/ubuntu/codius_host
+- name: start
+  shell: nohup node app.js & chdir=/home/ubuntu/codius_host
