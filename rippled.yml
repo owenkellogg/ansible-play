@@ -1,0 +1,10 @@
+# Actions: system env (common), then set up everything for rippled 
+# Author: NBR 
+# Date/Ver: dec06-2014
+---
+- name: RippleD Server Set Up
+  hosts: rippled
+  remote_user: ubuntu
+  sudo: yes
+  roles:
+    - rippled

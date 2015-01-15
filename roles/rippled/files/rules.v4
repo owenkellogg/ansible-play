@@ -1,0 +1,15 @@
+*nat
+:PREROUTING ACCEPT [0:0]
+:INPUT ACCEPT [1:60]
+:OUTPUT ACCEPT [114:7713]
+:POSTROUTING ACCEPT [114:7713]
+-A PREROUTING -p tcp -m tcp --dport 443 -j REDIRECT --to-ports 51233
+COMMIT
+*filter
+:INPUT ACCEPT [952:220848]
+:FORWARD ACCEPT [0:0]
+:OUTPUT ACCEPT [899:151967]
+-A INPUT -p tcp -m tcp --dport 51233 --tcp-flags FIN,SYN,RST,ACK SYN -m connlimit --connlimit-above 64 --connlimit-mask 32 --connlimit-saddr -j REJECT --reject-with icmp-port-unreachable
+COMMIT
+
+

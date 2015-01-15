@@ -1,0 +1,2 @@
+deb [arch=amd64] http://mirrors-internal.ripple.com/ubuntu/ trusty stable
+deb [arch=amd64] http://mirrors.ripple.com/ubuntu/ trusty contrib

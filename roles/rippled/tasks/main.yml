@@ -1,0 +1,115 @@
+---
+- name: Add user - nreese
+  user: name=nreese createhome=yes generate_ssh_key=yes shell=/bin/bash state=present
+- name: Add user - szeiler
+  user: name=szeiler createhome=yes generate_ssh_key=yes shell=/bin/bash state=present
+- name: Add user - tmarks
+  user: name=tmarks createhome=yes generate_ssh_key=yes shell=/bin/bash state=present
+- name: Add user - mtravis
+  user: name=mtravis createhome=yes generate_ssh_key=yes shell=/bin/bash state=present
+
+# now copy up the SSH keys
+#- name: nreese SSH Key
+#  copy: src=nreese_rsa.pub dest=/home/nreese/.ssh/authorized_keys owner=nreese group=nreese mode=640 directory_mode=700
+#- name: szeiler SSH Key
+#  copy: src=szeiler_rsa.pub dest=/home/szeiler/.ssh/authorized_keys owner=szeiler group=szeiler mode=640 directory_mode=700
+#- name: tmarks SSH Key
+#  copy: src=tmarks_rsa.pub dest=/home/tmarks/.ssh/authorized_keys owner=tmarks group=tmarks mode=640 directory_mode=700
+#- name: mtravis SSH Key
+#  copy: src=mtravis_rsa.pub dest=/home/mtravis/.ssh/authorized_keys owner=mtravis group=mtravis mode=640 directory_mode=700
+#sudo
+- name: Ensure permissions on /etc/sudoers.d/90-cloud-init-users
+  file: path=/etc/sudoers.d/90-cloud-init-users state=touch mode=0440
+- name: nreese has sudo
+  lineinfile: "dest=/etc/sudoers.d/90-cloud-init-users state=present regexp='^nreese' line='nreese ALL=(ALL) NOPASSWD:ALL'"
+- name: szeiler has sudo
+  lineinfile: "dest=/etc/sudoers.d/90-cloud-init-users state=present regexp='^szeiler' line='szeiler ALL=(ALL) NOPASSWD:ALL'"
+- name: tmarks has sudo
+  lineinfile: "dest=/etc/sudoers.d/90-cloud-init-users state=present regexp='^tmarks' line='tmarks ALL=(ALL) NOPASSWD:ALL'"
+- name: mtravis has sudo
+  lineinfile: "dest=/etc/sudoers.d/90-cloud-init-users state=present regexp='^mtravis' line='mtravis ALL=(ALL) NOPASSWD:ALL'"
+# repo
+- name: Custom Repo List
+  file: src=ripple.list dest=/etc/apt/sources.list.d/ripple.list owner=root group=root mode=644
+- name: Import apt key
+  apt_key: url=http://mirrors.ripple.com/mirrors.ripple.com.gpg.key state=present
+- name: update apt information
+  apt: update_cache=yes
+- name: install rippled
+  apt: name=rippled state=present
+# set up firewall
+- name: install iptables-persistent
+  apt: name=iptables-persistent state=present
+- name: iptables rules
+  copy: src=rules.v4 dest=/etc/iptables/rules.v4 mode=644 owner=root group=root
+- name: restart ip tables
+  service: name=iptables-persistent state=restarted
+# set up sysctl
+- name: sysctl file core
+  sysctl: sysctl_file=/etc/sysctl.d/99-rippled.conf name=kernel.core_pattern value=/data/rippled/var/cores/core.%E.%h.%t.%p reload=yes
+- name: sysctl file 
+  sysctl: sysctl_file=/etc/sysctl.d/99-rippled.conf name=kernel.core_uses_pid value=1 reload=yes
+- name: file limits
+  copy: src=90-nfile.conf dest=/etc/security/limits.d/
+# mdadm
+- name: install mdadm
+  apt: name=mdadm state=present
+- name: check for an existing RAID device
+  shell: grep LABEL=data /etc/fstab
+  register: result
+  ignore_errors: True
+- include: md_disk.yml
+  when: result|failed
+- name: make mount point
+  file: path=/data state=directory
+- name: make subdirectory for rippled
+  file: path=/data/rippled state=directory owner=rippled group=rippled mode=700 directory_mode=760
+# Python Stuff
+- name: install python3
+  apt: name=python3 state=present
+- name: install python3-pip
+  apt: name=python3-pip state=present
+- name: install python-pip
+  apt: name=python-pip state=present
+- name: pip install websocket
+  pip: name=websocket-client
+- name: pip install enum34
+  pip: name=enum34
+- name: pip3 install websocket
+  pip: name=websocket executable=pip3
+#SSHD Config
+- name: SSHD config
+  copy: src=sshd_config dest=/etc/ssh/sshd_config owner=root group=root mode=644
+- name: restart sshd
+  service: name=ssh state=restarted
+# disable auto updating.
+- name: replace things
+  replace: dest=/etc/apt/apt.conf.d/20auto-upgrades regexp='^APT\:\:Periodic\:\:Unattended-Upgrade \"1\";$' replace='APT::Periodic::Unattended-Upgrade "0";' backup=no
+#STATSD Setup
+- name: install git
+  apt: name=git state=present
+- name: install node
+  apt: name=nodejs state=present
+- name: install npm
+  apt: name=npm state=present
+- name: install statsd
+  git: repo=git://github.com/etsy/statsd.git dest=/home/afrank/git/ accept_hostkey=yes
+  ignore_errors: True
+- name: symlink nodejs
+  file: src=/usr/bin/nodejs dest=/usr/bin/node owner=root group=root state=link
+- name: statsd init
+  copy: src=ripple-statsd.conf dest=/etc/init/
+- name: statsd config
+  copy: src=localConfig.js dest=/home/afrank/git/statsd/
+# Afrank user's crontab
+- name: afrank crontab
+  copy: src=afrank.crontab dest=/var/spool/cron/crontabs/afrank owner=afrank group=crontab mode=600
+- name: cleanlog.sh copy
+  copy: src=cleanlog.sh dest=/home/afrank/ owner=afrank group=afrank mode=755
+- name: restart cron
+  service: name=cron state=restarted
+# Rippled user's crontab
+- name: rippled crontab
+  copy: src=rippled.crontab dest=/var/spool/cron/crontabs/rippled owner=rippled group=crontab mode=600
+- name: restart cron
+  service: name=cron state=restarted
