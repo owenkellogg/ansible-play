@@ -1,0 +1,15 @@
+- name: install apt dependencies
+  apt: name={{ item }} state=present
+  with_items:
+     - build-essential
+     - pkg-config
+     - libtool
+     - autotools-dev
+     - autoconf
+     - automake
+     - libssl-dev
+     - libboost-all-dev
+     - libdb5.1-dev
+     - libdb5.1++-dev
+- name: download dogecoind
+  git: repo=https://github.com/dogecoin/dogecoin dest=/home/ubuntu/dogecoind
