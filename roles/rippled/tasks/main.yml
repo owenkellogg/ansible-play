@@ -36,7 +36,7 @@
 - name: update apt information
   apt: update_cache=yes
 - name: install rippled
-  apt: name=rippled state=present
+  apt: name=build-essential state=present
 # set up firewall
 - name: install iptables-persistent
   apt: name=iptables-persistent state=present
